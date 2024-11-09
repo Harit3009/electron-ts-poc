@@ -1,0 +1,5 @@
+{
+  "watch": ["dist/"],
+  "delay": 2500,
+  "ext": "ts,tsx,html"
+}
