@@ -11,4 +11,6 @@ exports.eventHandlerMap = (_a = {},
     _a[events_1.MEDIA.ATTACH_DSKTOP_CAPTURER_REQ] = media_1.attachDesktopStream,
     _a[events_1.MEDIA.ASK_PERMISSION_CAMERA_REQ] = media_1.askForCameraPermissions,
     _a[events_1.NETWORK.GET_LOCAL_IP_REQ] = network_1.getLocalIP,
+    _a[events_1.NETWORK.SAVE_LOCAL_SDP_REQ] = network_1.saveLocalSdpInMain,
+    _a[events_1.NETWORK.GET_LOCAL_SDP_REQ] = network_1.getLocalSDP,
     _a);

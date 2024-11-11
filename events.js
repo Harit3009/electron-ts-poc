@@ -17,4 +17,8 @@ var NETWORK;
 (function (NETWORK) {
     NETWORK["GET_LOCAL_IP_REQ"] = "network:getlocalip:req";
     NETWORK["GET_LOCAL_IP_RES"] = "network:getlocalip:res";
+    NETWORK["SAVE_LOCAL_SDP_REQ"] = "network:saveLocalSDP:req";
+    NETWORK["SAVE_LOCAL_SDP_RES"] = "network:saveLocalSDP:res";
+    NETWORK["GET_LOCAL_SDP_REQ"] = "network:getLocalSDP:req";
+    NETWORK["GET_LOCAL_SDP_RES"] = "network:getLocalSDP:res";
 })(NETWORK || (exports.NETWORK = NETWORK = {}));

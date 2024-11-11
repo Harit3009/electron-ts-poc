@@ -43,7 +43,15 @@ var { webUtils } = require('electron');
     getLocalIp: (cb) => {
       ipcRenderer.send("network:getlocalip:req" /* GET_LOCAL_IP_REQ */);
       ipcRenderer.on("network:getlocalip:res" /* GET_LOCAL_IP_RES */, (_, args) => {
-        console.log(args);
+        cb(args);
+      });
+    },
+    saveLocalSDP: (sdp) => {
+      ipcRenderer.send("network:saveLocalSDP:req" /* SAVE_LOCAL_SDP_REQ */, sdp);
+    },
+    getLocalSDP: (cb) => {
+      ipcRenderer.send("network:getLocalSDP:req" /* GET_LOCAL_SDP_REQ */);
+      ipcRenderer.on("network:getLocalSDP:res" /* GET_LOCAL_SDP_RES */, (_, args) => {
         cb(args);
       });
     }

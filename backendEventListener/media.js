@@ -13,9 +13,6 @@ var attachDesktopStream = function (event, args, window) {
 exports.attachDesktopStream = attachDesktopStream;
 var askForCameraPermissions = function (event, args, window, deps) {
     try {
-        console.log(deps === null || deps === void 0 ? void 0 : deps.systemPreferences);
-        console.log(deps === null || deps === void 0 ? void 0 : deps.systemPreferences.getMediaAccessStatus("camera"));
-        console.log(deps === null || deps === void 0 ? void 0 : deps.systemPreferences.getMediaAccessStatus("microphone"));
     }
     catch (error) {
         console.log("catch error", error);

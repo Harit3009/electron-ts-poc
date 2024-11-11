@@ -24,9 +24,6 @@ export const askForCameraPermissions: EventHandlerFunction = (
   deps
 ) => {
   try {
-    console.log(deps?.systemPreferences);
-    console.log(deps?.systemPreferences.getMediaAccessStatus("camera"));
-    console.log(deps?.systemPreferences.getMediaAccessStatus("microphone"));
   } catch (error) {
     console.log("catch error", error);
   }

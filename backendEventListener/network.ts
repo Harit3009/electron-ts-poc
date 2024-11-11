@@ -21,3 +21,17 @@ export const getLocalIP: EventHandlerFunction = (event, args, window) => {
     port: 2345,
   });
 };
+
+export const saveLocalSdpInMain: EventHandlerFunction = (
+  event,
+  args,
+  win,
+  store
+) => {
+  store.localSdp = args;
+  event.sender.send(NETWORK.SAVE_LOCAL_SDP_RES);
+};
+
+export const getLocalSDP: EventHandlerFunction = (event, args, win, store) => {
+  event.sender.send(NETWORK.GET_LOCAL_SDP_RES, store.localSdp);
+};

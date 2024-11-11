@@ -16,7 +16,15 @@ const electronAPI: ExposedAPI = {
   getLocalIp: (cb: Function) => {
     ipcRenderer.send(NETWORK.GET_LOCAL_IP_REQ);
     ipcRenderer.on(NETWORK.GET_LOCAL_IP_RES, (_, args) => {
-      console.log(args);
+      cb(args);
+    });
+  },
+  saveLocalSDP: (sdp) => {
+    ipcRenderer.send(NETWORK.SAVE_LOCAL_SDP_REQ, sdp);
+  },
+  getLocalSDP: (cb: Function) => {
+    ipcRenderer.send(NETWORK.GET_LOCAL_SDP_REQ);
+    ipcRenderer.on(NETWORK.GET_LOCAL_SDP_RES, (_, args) => {
       cb(args);
     });
   },

@@ -8,17 +8,24 @@ export interface ExposedAPI {
   windowEventEmitter: EventEmitter;
   askCameraPermission: () => void;
   getLocalIp: (cb: Function) => void;
+  saveLocalSDP: (sdp: RTCSessionDescriptionInit) => void;
+  getLocalSDP: (cb: Function) => void;
 }
 
 export interface FrontendState {
   selectedPath: string;
 }
 
+export type BackendStore = {
+  localSdp?: RTCLocalSessionDescriptionInit;
+  remoteSdps: RTCLocalSessionDescriptionInit[];
+};
+
 export type EventHandlerFunction = (
   event: Electron.IpcMainEvent,
   args: any,
   window: BrowserWindow,
-  dependencies?: { systemPreferences: Electron.SystemPreferences }
+  store: BackendStore
 ) => void;
 
 export type RendererEventHandlerFunction = (

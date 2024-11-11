@@ -4,19 +4,31 @@ import { eventHandlerMap } from "./backendEventListener";
 import { config } from "dotenv";
 import WSClient from "ws";
 import express from "express";
-import { NetworkInterfaceInfo, networkInterfaces } from "os";
+import { BackendStore } from "./types";
 
+config();
 const httpServer = express();
+
+const store: BackendStore = { remoteSdps: [] };
+
+httpServer.use(express.json());
+httpServer.use(express.urlencoded({ extended: true }));
 
 const handshakePort = 2345;
 
-httpServer.listen(handshakePort, "0.0.0.0", () => {
-  // get the local ip
+httpServer.post("/connect", (req, res) => {
+  const sdp = req.body.sdp;
+  if (!store.localSdp) {
+    res.status(404).send({ message: "No sdp found yet!" });
+    return;
+  }
+  store.remoteSdps.push(sdp);
+  res.status(200).send({ remoteSDP: store.localSdp });
 });
 
-// write event listener to send it to screen
+httpServer.listen(handshakePort, "0.0.0.0", () => {});
 
-config();
+// write event listener to send it to screen
 
 const { APP_ENVIRONMENT } = process.env;
 
@@ -25,12 +37,11 @@ let mainWindow: BrowserWindow;
 
 if (APP_ENVIRONMENT === "DEV") {
   wsClient = new WSClient("ws://localhost:6030", {});
-  wsClient.on("connect", (ws) => {
-    console.log("connection in main");
-  });
+  wsClient.on("connect", (ws) => {});
+
   wsClient.on("message", (res: any) => {
     const data = JSON.parse(res.toString());
-    if (data.payload == "reload") mainWindow.reload();
+    if (data.payload == "reload" && mainWindow.isVisible()) mainWindow.reload();
   });
 }
 
@@ -60,8 +71,6 @@ app.on("ready", () => {
 
 Object.keys(eventHandlerMap).forEach((event) => {
   ipcMain.on(event, (recievedEvent, args) =>
-    eventHandlerMap[event](recievedEvent, args, mainWindow, {
-      systemPreferences,
-    })
+    eventHandlerMap[event](recievedEvent, args, mainWindow, store)
   );
 });

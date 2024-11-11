@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getLocalIP = void 0;
+exports.getLocalSDP = exports.saveLocalSdpInMain = exports.getLocalIP = void 0;
 var events_1 = require("../events");
 var os_1 = require("os");
 var getLocalIP = function (event, args, window) {
@@ -19,3 +19,12 @@ var getLocalIP = function (event, args, window) {
     });
 };
 exports.getLocalIP = getLocalIP;
+var saveLocalSdpInMain = function (event, args, win, store) {
+    store.localSdp = args;
+    event.sender.send(events_1.NETWORK.SAVE_LOCAL_SDP_RES);
+};
+exports.saveLocalSdpInMain = saveLocalSdpInMain;
+var getLocalSDP = function (event, args, win, store) {
+    event.sender.send(events_1.NETWORK.GET_LOCAL_SDP_RES, store.localSdp);
+};
+exports.getLocalSDP = getLocalSDP;

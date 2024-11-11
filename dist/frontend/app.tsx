@@ -12,8 +12,10 @@ const App: React.FC<{}> = () => {
 
   return (
     <>
-      <Connection />
-      <VideoComponent />
+      <div className="p-3">
+        <Connection />
+        <VideoComponent />
+      </div>
     </>
   );
 };

@@ -1093,7 +1093,7 @@
             var dispatcher = resolveDispatcher();
             return dispatcher.useReducer(reducer, initialArg, init);
           }
-          function useRef2(initialValue) {
+          function useRef3(initialValue) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useRef(initialValue);
           }
@@ -1887,7 +1887,7 @@
           exports.useLayoutEffect = useLayoutEffect;
           exports.useMemo = useMemo;
           exports.useReducer = useReducer;
-          exports.useRef = useRef2;
+          exports.useRef = useRef3;
           exports.useState = useState4;
           exports.useSyncExternalStore = useSyncExternalStore;
           exports.useTransition = useTransition;
@@ -23650,19 +23650,59 @@
   var React2 = __toESM(require_react());
   var Connection = () => {
     const [net, setNet] = React2.useState();
+    const [localSDP, setLocalSDP] = React2.useState();
+    const [remoteSDP, setRemoteSDP] = React2.useState();
+    const [ip, setIp] = React2.useState("");
+    const stream = React2.useRef(new MediaStream());
+    const rtcConnection = React2.useRef(
+      new RTCPeerConnection()
+    );
     React2.useEffect(() => {
       window.electron.getLocalIp((args) => {
         setNet(args);
       });
+      window.electron.getLocalSDP((sdp) => {
+        console.log("recievedLocal sdp", sdp);
+        if (sdp) {
+          setLocalSDP(sdp);
+          return;
+        }
+        createAndSetLocalOffer().then(
+          (offer) => window.electron.saveLocalSDP(offer)
+        );
+      });
     }, []);
-    return /* @__PURE__ */ React2.createElement(React2.Fragment, null, net && /* @__PURE__ */ React2.createElement("p", null, `http://${net?.ipAddress}:${net?.port}`));
+    const createAndSetLocalOffer = async () => {
+      const offer = await rtcConnection.current.createOffer();
+      console.log(offer);
+      setLocalSDP(offer);
+      return offer;
+    };
+    React2.useEffect(() => {
+      console.log(localSDP);
+      (async () => {
+        if (localSDP) {
+          await rtcConnection.current.setLocalDescription(localSDP);
+        }
+      })();
+    }, [localSDP]);
+    return /* @__PURE__ */ React2.createElement(React2.Fragment, null, net && /* @__PURE__ */ React2.createElement(React2.Fragment, null, /* @__PURE__ */ React2.createElement("p", null, `http://${net?.ipAddress}:${net?.port}`), /* @__PURE__ */ React2.createElement("div", { className: "d-flex flex-column" }, /* @__PURE__ */ React2.createElement(
+      "input",
+      {
+        value: ip,
+        onChange: (e) => setIp(e.target.value),
+        type: "text",
+        className: "p-1 w-50"
+      }
+    ), /* @__PURE__ */ React2.createElement("div", { className: "d-flex p-2" }, /* @__PURE__ */ React2.createElement("button", null, "connect"), /* @__PURE__ */ React2.createElement("button", { onClick: () => {
+    } }, "cancel")))));
   };
 
   // dist/frontend/app.tsx
   var App = () => {
     const [file, setFile] = (0, import_react.useState)("");
     const _electron = window.electron;
-    return /* @__PURE__ */ React3.createElement(React3.Fragment, null, /* @__PURE__ */ React3.createElement(Connection, null), /* @__PURE__ */ React3.createElement(video_default, null));
+    return /* @__PURE__ */ React3.createElement(React3.Fragment, null, /* @__PURE__ */ React3.createElement("div", { className: "p-3" }, /* @__PURE__ */ React3.createElement(Connection, null), /* @__PURE__ */ React3.createElement(video_default, null)));
   };
   var body = document.getElementById("body");
   var root = (0, import_client.createRoot)(body, {});

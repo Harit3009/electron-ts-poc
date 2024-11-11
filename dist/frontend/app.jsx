@@ -36,8 +36,10 @@ var App = function () {
     var _a = (0, react_1.useState)(""), file = _a[0], setFile = _a[1];
     var _electron = window.electron;
     return (<>
-      <connection_1.Connection />
-      <video_1.default />
+      <div className="p-3">
+        <connection_1.Connection />
+        <video_1.default />
+      </div>
     </>);
 };
 var body = document.getElementById("body");
