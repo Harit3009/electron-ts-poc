@@ -28,6 +28,11 @@ const electronAPI: ExposedAPI = {
       cb(args);
     });
   },
+  onRemoteSDPNotification: (cb) => {
+    ipcRenderer.on(NETWORK.NOTIFY_REMOTE_SDP, (_, args) => {
+      cb(args);
+    });
+  },
 };
 
 contextBridge.exposeInMainWorld("electron", electronAPI);

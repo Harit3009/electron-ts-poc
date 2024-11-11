@@ -17,4 +17,5 @@ export enum NETWORK {
   SAVE_LOCAL_SDP_RES = "network:saveLocalSDP:res",
   GET_LOCAL_SDP_REQ = "network:getLocalSDP:req",
   GET_LOCAL_SDP_RES = "network:getLocalSDP:res",
+  NOTIFY_REMOTE_SDP = "network:remoteSDP:notify",
 }

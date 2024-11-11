@@ -10,6 +10,7 @@ export interface ExposedAPI {
   getLocalIp: (cb: Function) => void;
   saveLocalSDP: (sdp: RTCSessionDescriptionInit) => void;
   getLocalSDP: (cb: Function) => void;
+  onRemoteSDPNotification: (cb: Function) => void;
 }
 
 export interface FrontendState {

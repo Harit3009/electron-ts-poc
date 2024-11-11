@@ -5,6 +5,7 @@ import { config } from "dotenv";
 import WSClient from "ws";
 import express from "express";
 import { BackendStore } from "./types";
+import { NETWORK } from "./events";
 
 config();
 const httpServer = express();
@@ -18,11 +19,16 @@ const handshakePort = 2345;
 
 httpServer.post("/connect", (req, res) => {
   const sdp = req.body.sdp;
+  if (!sdp) {
+    res.status(400).send({ message: "SDP is required field" });
+    return;
+  }
   if (!store.localSdp) {
     res.status(404).send({ message: "No sdp found yet!" });
     return;
   }
   store.remoteSdps.push(sdp);
+  mainWindow.webContents.send(NETWORK.NOTIFY_REMOTE_SDP, sdp);
   res.status(200).send({ remoteSDP: store.localSdp });
 });
 

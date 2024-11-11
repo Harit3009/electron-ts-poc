@@ -35,3 +35,7 @@ export const saveLocalSdpInMain: EventHandlerFunction = (
 export const getLocalSDP: EventHandlerFunction = (event, args, win, store) => {
   event.sender.send(NETWORK.GET_LOCAL_SDP_RES, store.localSdp);
 };
+
+export const setRemoteSDP: EventHandlerFunction = (event, args, win, store) => {
+  event.sender.send(NETWORK.GET_LOCAL_SDP_RES, store.localSdp);
+};
