@@ -1,5 +1,6 @@
 node_modules/*
 *.js
+*.jsx
 !build.js
 !build_FE.js
 !dev_bus.js
