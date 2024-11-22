@@ -14,6 +14,7 @@ export const eventHandlerMap: {
   [NETWORK.SAVE_LOCAL_OFFER_REQ]: saveLocalOfferInMain,
   [NETWORK.GET_LOCAL_OFFER_REQ]: getLocalOffer,
   [NETWORK.LOCAL_ANSWER_SDP_REQ]: async (ev, localAnswer, wind, store) => {
+    console.log(localAnswer, "in be event listener");
     store.localAnswer = localAnswer;
     return;
   },

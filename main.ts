@@ -12,7 +12,7 @@ const httpServer = express();
 
 const store: BackendStore = {
   on: function (changedProp: keyof BackendStore, cb) {
-    cb(this?.[changedProp as keyof BackendStore]);
+    this.callBacks[changedProp]!.push(cb);
   },
   off: function (prop: keyof BackendStore, cb) {
     if (this.callBacks[prop])
@@ -31,6 +31,7 @@ const store: BackendStore = {
 
 const newStore = new Proxy(store, {
   set: (target, property, value, rec) => {
+    console.log("value recieved within setter ", value);
     target.callBacks[property as keyof BackendStore]?.forEach((fn) => {
       fn(value);
     });
@@ -52,7 +53,11 @@ httpServer.post("/connect", async (req, res) => {
 
   const cb = (localAnswer: any) => {
     // remote answer for offerer
-    res.status(200).send({ remoteAnswer: localAnswer });
+    console.log("local answer in set store", localAnswer);
+    res
+      .status(200)
+      .setHeader("content-type", "application/json")
+      .send({ remoteAnswer: localAnswer });
     newStore.off("localAnswer", cb);
   };
 

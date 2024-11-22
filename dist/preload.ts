@@ -36,6 +36,7 @@ const electronAPI: ExposedAPI = {
 
   uploadLocalAnswer: (answer) => {
     try {
+      console.log(answer, "inside preload");
       ipcRenderer.send(NETWORK.LOCAL_ANSWER_SDP_REQ, answer);
     } catch (error) {
       console.log("error while answer", error);
