@@ -29,10 +29,17 @@ const electronAPI: ExposedAPI = {
     });
   },
   onDemandAnswerSDP: (cb) => {
-    ipcRenderer.on(NETWORK.DEMAND_LOCAL_ANSWER_SDP_NOTIFY, async (_, args) => {
-      const answer = await cb(args);
-      ipcRenderer.send(NETWORK.LOCAL_ANSWER_SDP_REQ, answer);
+    ipcRenderer.on(NETWORK.DEMAND_LOCAL_ANSWER_SDP_NOTIFY, (_, args) => {
+      cb(args);
     });
+  },
+
+  uploadLocalAnswer: (answer) => {
+    try {
+      ipcRenderer.send(NETWORK.LOCAL_ANSWER_SDP_REQ, answer);
+    } catch (error) {
+      console.log("error while answer", error);
+    }
   },
 };
 

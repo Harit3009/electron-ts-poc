@@ -5,6 +5,8 @@ export const Connection = () => {
   const [localOffer, setLocalSDP] = React.useState<RTCSessionDescriptionInit>();
   const [remoteSDP, setRemoteSDP] = React.useState<RTCSessionDescriptionInit>();
   const [STUN_Url, setStunUrl] = React.useState<string>("");
+  const [localAnswer, setLocalAnswer] =
+    React.useState<RTCSessionDescriptionInit>();
   const stream = React.useRef<MediaStream>(new MediaStream());
   const rtcConnection = React.useRef<RTCPeerConnection>(
     new RTCPeerConnection({
@@ -14,9 +16,8 @@ export const Connection = () => {
 
   React.useEffect(() => {
     window.electron.onDemandAnswerSDP(
-      async (_remoteSDP: RTCSessionDescriptionInit) => {
+      (_remoteSDP: RTCSessionDescriptionInit) => {
         setRemoteSDP(_remoteSDP);
-        return await rtcConnection.current.createAnswer();
       }
     );
 
@@ -34,6 +35,10 @@ export const Connection = () => {
       );
     });
   }, []);
+
+  React.useEffect(() => {
+    if (localAnswer) window.electron.uploadLocalAnswer(localAnswer);
+  }, [localAnswer]);
 
   const createAndSetLocalOffer = async () => {
     const offer = await rtcConnection.current.createOffer();
@@ -56,7 +61,10 @@ export const Connection = () => {
         await rtcConnection.current
           .setRemoteDescription(remoteSDP)
           .then((res) => {
-            console.log("remote connection was established", res);
+            rtcConnection.current.createAnswer().then((answer) => {
+              setLocalAnswer(answer);
+              console.log("remote connection was established", answer);
+            });
           });
       }
     })();
