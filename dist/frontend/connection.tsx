@@ -3,7 +3,10 @@ import * as React from "react";
 export const Connection = () => {
   const [net, setNet] = React.useState<{ ipAddress: string; port: string }>();
   const [localOffer, setLocalSDP] = React.useState<RTCSessionDescriptionInit>();
-  const [remoteSDP, setRemoteSDP] = React.useState<RTCSessionDescriptionInit>();
+  const [remoteAnswer, setRemoteAnswer] =
+    React.useState<RTCSessionDescriptionInit>();
+  const [remoteOffer, setRemoteOffer] =
+    React.useState<RTCSessionDescriptionInit>();
   const [STUN_Url, setStunUrl] = React.useState<string>("");
   const [localAnswer, setLocalAnswer] =
     React.useState<RTCSessionDescriptionInit>();
@@ -17,7 +20,7 @@ export const Connection = () => {
   React.useEffect(() => {
     window.electron.onDemandAnswerSDP(
       (_remoteSDP: RTCSessionDescriptionInit) => {
-        setRemoteSDP(_remoteSDP);
+        setRemoteOffer(_remoteSDP);
       }
     );
 
@@ -57,9 +60,9 @@ export const Connection = () => {
 
   React.useEffect(() => {
     (async () => {
-      if (remoteSDP) {
+      if (remoteOffer) {
         await rtcConnection.current
-          .setRemoteDescription(remoteSDP)
+          .setRemoteDescription(remoteOffer)
           .then((res) => {
             rtcConnection.current.createAnswer().then((answer) => {
               setLocalAnswer(answer);
@@ -68,7 +71,15 @@ export const Connection = () => {
           });
       }
     })();
-  }, [remoteSDP]);
+  }, [remoteOffer]);
+
+  React.useEffect(() => {
+    (async () => {
+      if (remoteAnswer) {
+        await rtcConnection.current.setRemoteDescription(remoteAnswer);
+      }
+    })();
+  }, [remoteAnswer]);
 
   const sendConnectionRequest = async () => {
     if (!localOffer) return;
@@ -82,7 +93,7 @@ export const Connection = () => {
       headers: [["content-type", "application/json"]],
     }).then((res) => res.json());
     console.log(res, "fetch response");
-    setRemoteSDP(res.remoteAnswer);
+    setRemoteAnswer(res.remoteAnswer);
   };
 
   return (
