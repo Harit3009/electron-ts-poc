@@ -20,17 +20,18 @@ const electronAPI: ExposedAPI = {
     });
   },
   saveLocalSDP: (sdp) => {
-    ipcRenderer.send(NETWORK.SAVE_LOCAL_SDP_REQ, sdp);
+    ipcRenderer.send(NETWORK.SAVE_LOCAL_OFFER_REQ, sdp);
   },
   getLocalSDP: (cb: Function) => {
-    ipcRenderer.send(NETWORK.GET_LOCAL_SDP_REQ);
-    ipcRenderer.on(NETWORK.GET_LOCAL_SDP_RES, (_, args) => {
+    ipcRenderer.send(NETWORK.GET_LOCAL_OFFER_REQ);
+    ipcRenderer.on(NETWORK.GET_LOCAL_OFFER_RES, (_, args) => {
       cb(args);
     });
   },
-  onRemoteSDPNotification: (cb) => {
-    ipcRenderer.on(NETWORK.NOTIFY_REMOTE_SDP, (_, args) => {
-      cb(args);
+  onDemandAnswerSDP: (cb) => {
+    ipcRenderer.on(NETWORK.DEMAND_LOCAL_ANSWER_SDP_NOTIFY, async (_, args) => {
+      const answer = await cb(args);
+      ipcRenderer.send(NETWORK.LOCAL_ANSWER_SDP_REQ, answer);
     });
   },
 };

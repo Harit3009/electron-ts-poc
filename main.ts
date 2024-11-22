@@ -10,26 +10,55 @@ import { NETWORK } from "./events";
 config();
 const httpServer = express();
 
-const store: BackendStore = { remoteSdps: [] };
+const store: BackendStore = {
+  on: function (changedProp: keyof BackendStore, cb) {
+    cb(this?.[changedProp as keyof BackendStore]);
+  },
+  off: function (prop: keyof BackendStore, cb) {
+    if (this.callBacks[prop])
+      this.callBacks[prop] = this.callBacks[prop]?.filter((fn) => fn != cb);
+  },
+  callBacks: {
+    localAnswer: [],
+    localOffer: [],
+    remoteAnswer: [],
+    remoteOffer: [],
+    on: [],
+    callBacks: [],
+    off: [],
+  },
+};
+
+const newStore = new Proxy(store, {
+  set: (target, property, value, rec) => {
+    target.callBacks[property as keyof BackendStore]?.forEach((fn) => {
+      fn(value);
+    });
+    return true;
+  },
+});
 
 httpServer.use(express.json());
 httpServer.use(express.urlencoded({ extended: true }));
 
 const handshakePort = 2345;
 
-httpServer.post("/connect", (req, res) => {
+httpServer.post("/connect", async (req, res) => {
   const sdp = req.body.sdp;
   if (!sdp) {
     res.status(400).send({ message: "SDP is required field" });
     return;
   }
-  if (!store.localSdp) {
-    res.status(404).send({ message: "No sdp found yet!" });
-    return;
-  }
-  store.remoteSdps.push(sdp);
-  mainWindow.webContents.send(NETWORK.NOTIFY_REMOTE_SDP, sdp);
-  res.status(200).send({ remoteSDP: store.localSdp });
+
+  const cb = (localAnswer: any) => {
+    // remote answer for offerer
+    res.status(200).send({ remoteAnswer: localAnswer });
+    newStore.off("localAnswer", cb);
+  };
+
+  store.remoteOffer = sdp;
+  newStore.on("localAnswer", cb);
+  mainWindow.webContents.send(NETWORK.DEMAND_LOCAL_ANSWER_SDP_NOTIFY, sdp);
 });
 
 httpServer.listen(handshakePort, "0.0.0.0", () => {});
@@ -76,7 +105,9 @@ app.on("ready", () => {
 });
 
 Object.keys(eventHandlerMap).forEach((event) => {
-  ipcMain.on(event, (recievedEvent, args) =>
-    eventHandlerMap[event](recievedEvent, args, mainWindow, store)
+  ipcMain.on(
+    event,
+    async (recievedEvent, args) =>
+      await eventHandlerMap[event](recievedEvent, args, mainWindow, newStore)
   );
 });

@@ -2,7 +2,7 @@ import { NETWORK } from "../events";
 import { EventHandlerFunction } from "../types";
 import { NetworkInterfaceInfo, networkInterfaces } from "os";
 
-export const getLocalIP: EventHandlerFunction = (event, args, window) => {
+export const getLocalIP: EventHandlerFunction = async (event, args, window) => {
   const _net = networkInterfaces();
 
   const netInterfaces = Object.keys(_net);
@@ -22,20 +22,21 @@ export const getLocalIP: EventHandlerFunction = (event, args, window) => {
   });
 };
 
-export const saveLocalSdpInMain: EventHandlerFunction = (
+export const saveLocalOfferInMain: EventHandlerFunction = async (
   event,
   args,
   win,
   store
 ) => {
-  store.localSdp = args;
-  event.sender.send(NETWORK.SAVE_LOCAL_SDP_RES);
+  store.localOffer = args;
+  event.sender.send(NETWORK.SAVE_LOCAL_OFFER_RES);
 };
 
-export const getLocalSDP: EventHandlerFunction = (event, args, win, store) => {
-  event.sender.send(NETWORK.GET_LOCAL_SDP_RES, store.localSdp);
-};
-
-export const setRemoteSDP: EventHandlerFunction = (event, args, win, store) => {
-  event.sender.send(NETWORK.GET_LOCAL_SDP_RES, store.localSdp);
+export const getLocalOffer: EventHandlerFunction = async (
+  event,
+  args,
+  win,
+  store
+) => {
+  event.sender.send(NETWORK.GET_LOCAL_OFFER_RES, store.localOffer);
 };

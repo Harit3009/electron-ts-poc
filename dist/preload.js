@@ -47,12 +47,18 @@ var { webUtils } = require('electron');
       });
     },
     saveLocalSDP: (sdp) => {
-      ipcRenderer.send("network:saveLocalSDP:req" /* SAVE_LOCAL_SDP_REQ */, sdp);
+      ipcRenderer.send("network:saveLocalOfferSDP:req" /* SAVE_LOCAL_OFFER_REQ */, sdp);
     },
     getLocalSDP: (cb) => {
-      ipcRenderer.send("network:getLocalSDP:req" /* GET_LOCAL_SDP_REQ */);
-      ipcRenderer.on("network:getLocalSDP:res" /* GET_LOCAL_SDP_RES */, (_, args) => {
+      ipcRenderer.send("network:getLocalOffer:req" /* GET_LOCAL_OFFER_REQ */);
+      ipcRenderer.on("network:getLocalOffer:res" /* GET_LOCAL_OFFER_RES */, (_, args) => {
         cb(args);
+      });
+    },
+    onDemandAnswerSDP: (cb) => {
+      ipcRenderer.on("networ:demandLocalAnswerSDP:notify" /* DEMAND_LOCAL_ANSWER_SDP_NOTIFY */, async (_, args) => {
+        const answer = await cb(args);
+        ipcRenderer.send("networ:localAnswerSDP:req" /* LOCAL_ANSWER_SDP_REQ */, answer);
       });
     }
   };

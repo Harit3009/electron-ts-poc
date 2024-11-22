@@ -23650,19 +23650,26 @@
   var React2 = __toESM(require_react());
   var Connection = () => {
     const [net, setNet] = React2.useState();
-    const [localSDP, setLocalSDP] = React2.useState();
+    const [localOffer, setLocalSDP] = React2.useState();
     const [remoteSDP, setRemoteSDP] = React2.useState();
-    const [ip, setIp] = React2.useState("");
+    const [STUN_Url, setStunUrl] = React2.useState("");
     const stream = React2.useRef(new MediaStream());
     const rtcConnection = React2.useRef(
-      new RTCPeerConnection()
+      new RTCPeerConnection({
+        iceTransportPolicy: "all"
+      })
     );
     React2.useEffect(() => {
+      window.electron.onDemandAnswerSDP(
+        async (_remoteSDP) => {
+          setRemoteSDP(_remoteSDP);
+          return await rtcConnection.current.createAnswer();
+        }
+      );
       window.electron.getLocalIp((args) => {
         setNet(args);
       });
       window.electron.getLocalSDP((sdp) => {
-        console.log("recievedLocal sdp", sdp);
         if (sdp) {
           setLocalSDP(sdp);
           return;
@@ -23674,27 +23681,49 @@
     }, []);
     const createAndSetLocalOffer = async () => {
       const offer = await rtcConnection.current.createOffer();
-      console.log(offer);
       setLocalSDP(offer);
       return offer;
     };
     React2.useEffect(() => {
-      console.log(localSDP);
+      console.log(localOffer);
       (async () => {
-        if (localSDP) {
-          await rtcConnection.current.setLocalDescription(localSDP);
+        if (localOffer) {
+          await rtcConnection.current.setLocalDescription(localOffer);
         }
       })();
-    }, [localSDP]);
+    }, [localOffer]);
+    React2.useEffect(() => {
+      (async () => {
+        if (remoteSDP) {
+          await rtcConnection.current.setRemoteDescription(remoteSDP).then((res) => {
+            console.log("remote connection was established", res);
+          });
+        }
+      })();
+    }, [remoteSDP]);
+    const sendConnectionRequest = async () => {
+      if (!localOffer) return;
+      const body2 = JSON.stringify({
+        sdp: localOffer
+      });
+      console.log(body2);
+      const res = await fetch(`http://${"192.168.29.27:2345"}/connect`, {
+        method: "POST",
+        body: body2,
+        headers: [["content-type", "application/json"]]
+      }).then((res2) => res2.json());
+      console.log(res, "fetch response");
+      setRemoteSDP(res.remoteAnswer);
+    };
     return /* @__PURE__ */ React2.createElement(React2.Fragment, null, net && /* @__PURE__ */ React2.createElement(React2.Fragment, null, /* @__PURE__ */ React2.createElement("p", null, `http://${net?.ipAddress}:${net?.port}`), /* @__PURE__ */ React2.createElement("div", { className: "d-flex flex-column" }, /* @__PURE__ */ React2.createElement(
       "input",
       {
-        value: ip,
-        onChange: (e) => setIp(e.target.value),
+        value: STUN_Url,
+        onChange: (e) => setStunUrl(e.target.value),
         type: "text",
         className: "p-1 w-50"
       }
-    ), /* @__PURE__ */ React2.createElement("div", { className: "d-flex p-2" }, /* @__PURE__ */ React2.createElement("button", null, "connect"), /* @__PURE__ */ React2.createElement("button", { onClick: () => {
+    ), /* @__PURE__ */ React2.createElement("div", { className: "d-flex" }, /* @__PURE__ */ React2.createElement("button", { onClick: sendConnectionRequest }, "connect"), /* @__PURE__ */ React2.createElement("button", { onClick: () => {
     } }, "cancel")))));
   };
 

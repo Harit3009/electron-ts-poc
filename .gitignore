@@ -1,1 +1,7 @@
 node_modules/*
+*.js
+!build.js
+!build_FE.js
+!dev_bus.js
+!hot_reload.js
+!settings.js

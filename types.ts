@@ -10,7 +10,9 @@ export interface ExposedAPI {
   getLocalIp: (cb: Function) => void;
   saveLocalSDP: (sdp: RTCSessionDescriptionInit) => void;
   getLocalSDP: (cb: Function) => void;
-  onRemoteSDPNotification: (cb: Function) => void;
+  onDemandAnswerSDP: (
+    cb: (offer: RTCSessionDescriptionInit) => Promise<RTCSessionDescriptionInit>
+  ) => void;
 }
 
 export interface FrontendState {
@@ -18,8 +20,15 @@ export interface FrontendState {
 }
 
 export type BackendStore = {
-  localSdp?: RTCLocalSessionDescriptionInit;
-  remoteSdps: RTCLocalSessionDescriptionInit[];
+  localAnswer?: RTCLocalSessionDescriptionInit;
+  remoteOffer?: RTCLocalSessionDescriptionInit;
+  localOffer?: RTCLocalSessionDescriptionInit;
+  remoteAnswer?: RTCLocalSessionDescriptionInit;
+  on: (key: keyof BackendStore, cb: Function) => any;
+  callBacks: {
+    [key in keyof BackendStore]: Function[];
+  };
+  off: (key: keyof BackendStore, cb: Function) => any;
 };
 
 export type EventHandlerFunction = (
@@ -27,7 +36,7 @@ export type EventHandlerFunction = (
   args: any,
   window: BrowserWindow,
   store: BackendStore
-) => void;
+) => Promise<void>;
 
 export type RendererEventHandlerFunction = (
   event: Electron.IpcRendererEvent,

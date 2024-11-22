@@ -2,26 +2,29 @@ import * as React from "react";
 
 export const Connection = () => {
   const [net, setNet] = React.useState<{ ipAddress: string; port: string }>();
-  const [localSDP, setLocalSDP] = React.useState<RTCSessionDescriptionInit>();
+  const [localOffer, setLocalSDP] = React.useState<RTCSessionDescriptionInit>();
   const [remoteSDP, setRemoteSDP] = React.useState<RTCSessionDescriptionInit>();
   const [STUN_Url, setStunUrl] = React.useState<string>("");
   const stream = React.useRef<MediaStream>(new MediaStream());
   const rtcConnection = React.useRef<RTCPeerConnection>(
-    new RTCPeerConnection()
+    new RTCPeerConnection({
+      iceTransportPolicy: "all",
+    })
   );
 
   React.useEffect(() => {
-    window.electron.onRemoteSDPNotification(
-      (_remoteSDP: RTCSessionDescriptionInit) => {
+    window.electron.onDemandAnswerSDP(
+      async (_remoteSDP: RTCSessionDescriptionInit) => {
         setRemoteSDP(_remoteSDP);
+        return await rtcConnection.current.createAnswer();
       }
     );
+
     window.electron.getLocalIp((args: any) => {
       setNet(args);
     });
 
     window.electron.getLocalSDP((sdp?: RTCSessionDescriptionInit) => {
-      console.log("recievedLocal sdp", sdp);
       if (sdp) {
         setLocalSDP(sdp);
         return;
@@ -34,22 +37,20 @@ export const Connection = () => {
 
   const createAndSetLocalOffer = async () => {
     const offer = await rtcConnection.current.createOffer();
-    console.log(offer);
     setLocalSDP(offer);
     return offer;
   };
 
   React.useEffect(() => {
-    console.log(localSDP);
+    console.log(localOffer);
     (async () => {
-      if (localSDP) {
-        await rtcConnection.current.setLocalDescription(localSDP);
+      if (localOffer) {
+        await rtcConnection.current.setLocalDescription(localOffer);
       }
     })();
-  }, [localSDP]);
+  }, [localOffer]);
 
   React.useEffect(() => {
-    console.log(remoteSDP);
     (async () => {
       if (remoteSDP) {
         await rtcConnection.current
@@ -62,17 +63,18 @@ export const Connection = () => {
   }, [remoteSDP]);
 
   const sendConnectionRequest = async () => {
-    if (!localSDP) return;
-    const res = await fetch(`http://${STUN_Url}/connect`, {
+    if (!localOffer) return;
+    const body = JSON.stringify({
+      sdp: localOffer,
+    });
+    console.log(body);
+    const res = await fetch(`http://${"192.168.29.27:2345"}/connect`, {
       method: "POST",
-      body: JSON.stringify({
-        sdp: localSDP,
-      }),
+      body,
+      headers: [["content-type", "application/json"]],
     }).then((res) => res.json());
-
     console.log(res, "fetch response");
-
-    setRemoteSDP(res.remoteSdp);
+    setRemoteSDP(res.remoteAnswer);
   };
 
   return (

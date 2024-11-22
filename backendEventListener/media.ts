@@ -1,7 +1,7 @@
 import { desktopCapturer, systemPreferences } from "electron";
 import { EventHandlerFunction } from "../types";
 
-export const attachDesktopStream: EventHandlerFunction = (
+export const attachDesktopStream: EventHandlerFunction = async (
   event,
   args,
   window
@@ -17,7 +17,7 @@ export const attachDesktopStream: EventHandlerFunction = (
   );
 };
 
-export const askForCameraPermissions: EventHandlerFunction = (
+export const askForCameraPermissions: EventHandlerFunction = async (
   event,
   args,
   window,

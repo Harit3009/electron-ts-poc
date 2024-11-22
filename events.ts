@@ -13,9 +13,10 @@ export enum MEDIA {
 export enum NETWORK {
   GET_LOCAL_IP_REQ = "network:getlocalip:req",
   GET_LOCAL_IP_RES = "network:getlocalip:res",
-  SAVE_LOCAL_SDP_REQ = "network:saveLocalSDP:req",
-  SAVE_LOCAL_SDP_RES = "network:saveLocalSDP:res",
-  GET_LOCAL_SDP_REQ = "network:getLocalSDP:req",
-  GET_LOCAL_SDP_RES = "network:getLocalSDP:res",
-  NOTIFY_REMOTE_SDP = "network:remoteSDP:notify",
+  SAVE_LOCAL_OFFER_REQ = "network:saveLocalOfferSDP:req",
+  SAVE_LOCAL_OFFER_RES = "network:saveLocalOfferSDP:res",
+  GET_LOCAL_OFFER_REQ = "network:getLocalOffer:req",
+  GET_LOCAL_OFFER_RES = "network:getLocalOffer:res",
+  DEMAND_LOCAL_ANSWER_SDP_NOTIFY = "networ:demandLocalAnswerSDP:notify",
+  LOCAL_ANSWER_SDP_REQ = "networ:localAnswerSDP:req",
 }

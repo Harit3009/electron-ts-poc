@@ -63,17 +63,28 @@ exports.Connection = void 0;
 var React = __importStar(require("react"));
 var Connection = function () {
     var _a = React.useState(), net = _a[0], setNet = _a[1];
-    var _b = React.useState(), localSDP = _b[0], setLocalSDP = _b[1];
+    var _b = React.useState(), localOffer = _b[0], setLocalSDP = _b[1];
     var _c = React.useState(), remoteSDP = _c[0], setRemoteSDP = _c[1];
-    var _d = React.useState(""), ip = _d[0], setIp = _d[1];
+    var _d = React.useState(""), STUN_Url = _d[0], setStunUrl = _d[1];
     var stream = React.useRef(new MediaStream());
-    var rtcConnection = React.useRef(new RTCPeerConnection());
+    var rtcConnection = React.useRef(new RTCPeerConnection({
+        iceTransportPolicy: "all",
+    }));
     React.useEffect(function () {
+        window.electron.onDemandAnswerSDP(function (_remoteSDP) { return __awaiter(void 0, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        setRemoteSDP(_remoteSDP);
+                        return [4 /*yield*/, rtcConnection.current.createAnswer()];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        }); });
         window.electron.getLocalIp(function (args) {
             setNet(args);
         });
         window.electron.getLocalSDP(function (sdp) {
-            console.log("recievedLocal sdp", sdp);
             if (sdp) {
                 setLocalSDP(sdp);
                 return;
@@ -90,20 +101,19 @@ var Connection = function () {
                 case 0: return [4 /*yield*/, rtcConnection.current.createOffer()];
                 case 1:
                     offer = _a.sent();
-                    console.log(offer);
                     setLocalSDP(offer);
                     return [2 /*return*/, offer];
             }
         });
     }); };
     React.useEffect(function () {
-        console.log(localSDP);
+        console.log(localOffer);
         (function () { return __awaiter(void 0, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!localSDP) return [3 /*break*/, 2];
-                        return [4 /*yield*/, rtcConnection.current.setLocalDescription(localSDP)];
+                        if (!localOffer) return [3 /*break*/, 2];
+                        return [4 /*yield*/, rtcConnection.current.setLocalDescription(localOffer)];
                     case 1:
                         _a.sent();
                         _a.label = 2;
@@ -111,15 +121,58 @@ var Connection = function () {
                 }
             });
         }); })();
-    }, [localSDP]);
+    }, [localOffer]);
+    React.useEffect(function () {
+        (function () { return __awaiter(void 0, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!remoteSDP) return [3 /*break*/, 2];
+                        return [4 /*yield*/, rtcConnection.current
+                                .setRemoteDescription(remoteSDP)
+                                .then(function (res) {
+                                console.log("remote connection was established", res);
+                            })];
+                    case 1:
+                        _a.sent();
+                        _a.label = 2;
+                    case 2: return [2 /*return*/];
+                }
+            });
+        }); })();
+    }, [remoteSDP]);
+    var sendConnectionRequest = function () { return __awaiter(void 0, void 0, void 0, function () {
+        var body, res;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    if (!localOffer)
+                        return [2 /*return*/];
+                    body = JSON.stringify({
+                        sdp: localOffer,
+                    });
+                    console.log(body);
+                    return [4 /*yield*/, fetch("http://".concat("192.168.29.27:2345", "/connect"), {
+                            method: "POST",
+                            body: body,
+                            headers: [["content-type", "application/json"]],
+                        }).then(function (res) { return res.json(); })];
+                case 1:
+                    res = _a.sent();
+                    console.log(res, "fetch response");
+                    setRemoteSDP(res.remoteAnswer);
+                    return [2 /*return*/];
+            }
+        });
+    }); };
     return (<>
       {net && (<>
           <p>{"http://".concat(net === null || net === void 0 ? void 0 : net.ipAddress, ":").concat(net === null || net === void 0 ? void 0 : net.port)}</p>
 
           <div className="d-flex flex-column">
-            <input value={ip} onChange={function (e) { return setIp(e.target.value); }} type="text" className="p-1 w-50"/>
-            <div className="d-flex p-2">
-              <button>connect</button>
+            <input value={STUN_Url} onChange={function (e) { return setStunUrl(e.target.value); }} type="text" className="p-1 w-50"/>
+            <div className="d-flex">
+              <button onClick={sendConnectionRequest}>connect</button>
               <button onClick={function () { }}>cancel</button>
             </div>
           </div>
