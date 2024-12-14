@@ -8,7 +8,8 @@ export const Connection = () => {
     React.useState<RTCSessionDescriptionInit>();
   const [remoteOffer, setRemoteOffer] =
     React.useState<RTCSessionDescriptionInit>();
-  const [remoteUrl, setRemoteUrl] = React.useState<string>("192.168.29.27");
+  const [remoteUrl, setRemoteUrl] =
+    React.useState<string>("192.168.29.27:2345");
   const [localAnswer, setLocalAnswer] =
     React.useState<RTCSessionDescriptionInit>();
   const stream = React.useRef<MediaStream>(new MediaStream());
@@ -18,6 +19,9 @@ export const Connection = () => {
       iceTransportPolicy: "all",
     })
   );
+
+  const offererChannel = React.useRef<RTCDataChannel>();
+  const answererChannel = React.useRef<RTCDataChannel>();
 
   React.useEffect(() => {
     window.electron.onDemandAnswerSDP(
@@ -39,6 +43,19 @@ export const Connection = () => {
         window.electron.saveLocalSDP(offer)
       );
     });
+
+    rtcConnection.current.ondatachannel = (event) => {
+      answererChannel.current = event.channel;
+
+      answererChannel.current.onopen = () => {
+        console.log("Data channel is open!");
+      };
+
+      answererChannel.current.onmessage = (event) => {
+        console.log("Message from peer:", event.data);
+      };
+    };
+    (window as any).a = rtcConnection.current;
   }, []);
 
   React.useEffect(() => {
@@ -82,6 +99,15 @@ export const Connection = () => {
       if (remoteAnswer) {
         setLoading(false);
         await rtcConnection.current.setRemoteDescription(remoteAnswer);
+        offererChannel.current =
+          rtcConnection.current.createDataChannel("jsonChannel");
+        offererChannel.current.onopen = () => {
+          console.log("Data channel is open!");
+        };
+
+        offererChannel.current.onmessage = (event) => {
+          console.log("Message from peer:", event.data);
+        };
       }
     })();
   }, [remoteAnswer]);
@@ -96,9 +122,20 @@ export const Connection = () => {
       method: "POST",
       body,
       headers: [["content-type", "application/json"]],
-    }).then((res) => res.json());
+    })
+      .then((res) => res.json())
+      .catch((er) => {
+        console.log(er);
+      });
     setRemoteAnswer(res.remoteAnswer);
   };
+
+  React.useEffect(() => {
+    console.log(
+      "(offererChannel.current?.readyState",
+      offererChannel.current?.readyState
+    );
+  }, [offererChannel.current?.readyState]);
 
   return (
     <>
@@ -120,6 +157,16 @@ export const Connection = () => {
                 <div className="d-flex">
                   <button onClick={sendConnectionRequest}>connect</button>
                   <button onClick={() => {}}>cancel</button>
+                  <button
+                    onClick={() => {
+                      if (offererChannel.current?.readyState === "open")
+                        offererChannel.current?.send?.(
+                          JSON.stringify({ remoteUrl })
+                        );
+                    }}
+                  >
+                    Send data test
+                  </button>
                 </div>
               </div>
             </>
