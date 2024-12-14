@@ -2,12 +2,13 @@ import * as React from "react";
 
 export const Connection = () => {
   const [net, setNet] = React.useState<{ ipAddress: string; port: string }>();
-  const [localOffer, setLocalSDP] = React.useState<RTCSessionDescriptionInit>();
+  const [localOffer, setLocalOffer] =
+    React.useState<RTCSessionDescriptionInit>();
   const [remoteAnswer, setRemoteAnswer] =
     React.useState<RTCSessionDescriptionInit>();
   const [remoteOffer, setRemoteOffer] =
     React.useState<RTCSessionDescriptionInit>();
-  const [STUN_Url, setStunUrl] = React.useState<string>("");
+  const [remoteUrl, setRemoteUrl] = React.useState<string>("");
   const [localAnswer, setLocalAnswer] =
     React.useState<RTCSessionDescriptionInit>();
   const stream = React.useRef<MediaStream>(new MediaStream());
@@ -30,7 +31,7 @@ export const Connection = () => {
 
     window.electron.getLocalSDP((sdp?: RTCSessionDescriptionInit) => {
       if (sdp) {
-        setLocalSDP(sdp);
+        setLocalOffer(sdp);
         return;
       }
       createAndSetLocalOffer().then((offer) =>
@@ -40,12 +41,14 @@ export const Connection = () => {
   }, []);
 
   React.useEffect(() => {
-    if (localAnswer) window.electron.uploadLocalAnswer(localAnswer);
+    if (localAnswer) {
+      window.electron.uploadLocalAnswer(localAnswer);
+    }
   }, [localAnswer]);
 
   const createAndSetLocalOffer = async () => {
     const offer = await rtcConnection.current.createOffer();
-    setLocalSDP(offer);
+    setLocalOffer(offer);
     return offer;
   };
 
@@ -77,6 +80,7 @@ export const Connection = () => {
     (async () => {
       if (remoteAnswer) {
         await rtcConnection.current.setRemoteDescription(remoteAnswer);
+        // rtcConnection.current.
       }
     })();
   }, [remoteAnswer]);
@@ -86,13 +90,11 @@ export const Connection = () => {
     const body = JSON.stringify({
       sdp: localOffer,
     });
-    console.log(body);
-    const res = await fetch(`http://${"192.168.29.27:2345"}/connect`, {
+    const res = await fetch(`http://${remoteUrl}/connect`, {
       method: "POST",
       body,
       headers: [["content-type", "application/json"]],
     }).then((res) => res.json());
-    console.log(res, "fetch response");
     setRemoteAnswer(res.remoteAnswer);
   };
 
@@ -104,8 +106,9 @@ export const Connection = () => {
 
           <div className="d-flex flex-column">
             <input
-              value={STUN_Url}
-              onChange={(e) => setStunUrl(e.target.value)}
+              defaultValue={""}
+              value={remoteUrl}
+              onChange={(e) => setRemoteUrl(e.target.value)}
               type="text"
               className="p-1 w-50"
             />
