@@ -8,10 +8,11 @@ export const Connection = () => {
     React.useState<RTCSessionDescriptionInit>();
   const [remoteOffer, setRemoteOffer] =
     React.useState<RTCSessionDescriptionInit>();
-  const [remoteUrl, setRemoteUrl] = React.useState<string>("");
+  const [remoteUrl, setRemoteUrl] = React.useState<string>("192.168.29.27");
   const [localAnswer, setLocalAnswer] =
     React.useState<RTCSessionDescriptionInit>();
   const stream = React.useRef<MediaStream>(new MediaStream());
+  const [loading, setLoading] = React.useState<boolean>(false);
   const rtcConnection = React.useRef<RTCPeerConnection>(
     new RTCPeerConnection({
       iceTransportPolicy: "all",
@@ -79,14 +80,15 @@ export const Connection = () => {
   React.useEffect(() => {
     (async () => {
       if (remoteAnswer) {
+        setLoading(false);
         await rtcConnection.current.setRemoteDescription(remoteAnswer);
-        // rtcConnection.current.
       }
     })();
   }, [remoteAnswer]);
 
   const sendConnectionRequest = async () => {
     if (!localOffer) return;
+    setLoading(true);
     const body = JSON.stringify({
       sdp: localOffer,
     });
@@ -102,21 +104,26 @@ export const Connection = () => {
     <>
       {net && (
         <>
-          <p>{`http://${net?.ipAddress}:${net?.port}`}</p>
+          {loading ? (
+            <div className="d-flex">Loading...</div>
+          ) : (
+            <>
+              <p>{`http://${net?.ipAddress}:${net?.port}`}</p>
 
-          <div className="d-flex flex-column">
-            <input
-              defaultValue={""}
-              value={remoteUrl}
-              onChange={(e) => setRemoteUrl(e.target.value)}
-              type="text"
-              className="p-1 w-50"
-            />
-            <div className="d-flex">
-              <button onClick={sendConnectionRequest}>connect</button>
-              <button onClick={() => {}}>cancel</button>
-            </div>
-          </div>
+              <div className="d-flex flex-column">
+                <input
+                  value={remoteUrl}
+                  onChange={(e) => setRemoteUrl(e.target.value)}
+                  type="text"
+                  className="p-1 w-50"
+                />
+                <div className="d-flex">
+                  <button onClick={sendConnectionRequest}>connect</button>
+                  <button onClick={() => {}}>cancel</button>
+                </div>
+              </div>
+            </>
+          )}
         </>
       )}
     </>
