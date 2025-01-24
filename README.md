@@ -1,0 +1,3 @@
+An electron dev environment for testing out webRTC connection.
+Purpose of this application is to receive P2P communication over webRTC protocol from a flutter App (to be made), the app will stream swipe gesture data over the channel...
+The electron app will capture the stream and move pointer accordingly.
